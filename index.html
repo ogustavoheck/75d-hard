@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>75D Hard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f7f7f5;
+      --border: #e9e9e7;
+      --text: #37352f;
+      --text-2: #787774;
+      --text-3: #acaba8;
+      --blue: #2383e2;
+      --green: #0f7b55;
+      --green-light: #edf7f3;
+      --red: #eb5757;
+      --red-light: #fdf2f2;
+      --yellow: #c08c00;
+      --yellow-light: #fbf3db;
+      --r: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ── LOADING SCREEN ──────────────────────────── */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      z-index: 200;
+    }
+
+    .loading-logo {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--text-3);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-label {
+      font-size: 13px;
+      color: var(--text-3);
+    }
+
+    /* ── OVERLAY / MODAL ─────────────────────────── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+      backdrop-filter: blur(2px);
+    }
+
+    .modal {
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 32px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .modal-sub {
+      color: var(--text-2);
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+
+    .form-group { margin-bottom: 16px; }
+
+    .form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 9px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .form-input:focus {
+      border-color: #b3c9e5;
+      box-shadow: 0 0 0 3px rgba(35, 131, 226, 0.1);
+    }
+
+    /* ── PROFILE PICKER ──────────────────────────── */
+    #profile-picker {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .profile-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .profile-btn:hover {
+      border-color: var(--text-3);
+      background: var(--surface);
+    }
+
+    .profile-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .avatar-0 { background: var(--green-light); color: var(--green); }
+    .avatar-1 { background: #e8f3fc; color: var(--blue); }
+
+    .profile-btn-name {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .profile-btn-sub {
+      font-size: 12px;
+      color: var(--text-2);
+      margin-top: 1px;
+    }
+
+    /* ── BUTTONS ─────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--r);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+
+    .btn-primary { background: var(--text); color: #fff; }
+    .btn-primary:hover { background: #4a4a47; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-2);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--surface); color: var(--text); }
+
+    .btn-full { width: 100%; }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    /* ── LAYOUT ──────────────────────────────────── */
+    #app {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── HEADER ──────────────────────────────────── */
+    header {
+      padding: 28px 0 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 10px; }
+
+    .logo {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .day-badge {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 12px;
+      color: var(--text-2);
+      font-weight: 500;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    .who-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      transition: all 0.15s;
+    }
+
+    .who-badge:hover { background: var(--surface); color: var(--text); }
+
+    .who-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .dot-0 { background: var(--green); }
+    .dot-1 { background: var(--blue); }
+
+    /* ── TABS ────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      color: var(--text-2);
+      margin-bottom: -1px;
+      transition: all 0.15s;
+    }
+
+    .tab.active { color: var(--text); border-bottom-color: var(--text); }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    /* ── TODAY CARD ──────────────────────────────── */
+    .today-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+
+    .today-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .today-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-3);
+      margin-bottom: 3px;
+    }
+
+    .today-date {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    /* Progress ring */
+    .progress-ring { position: relative; width: 52px; height: 52px; flex-shrink: 0; }
+    .progress-ring svg { transform: rotate(-90deg); display: block; }
+    .ring-bg { fill: none; stroke: var(--border); stroke-width: 3; }
+    .ring-fill {
+      fill: none;
+      stroke: var(--green);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-dasharray: 138.23;
+      stroke-dashoffset: 138.23;
+      transition: stroke-dashoffset 0.4s ease;
+    }
+    .ring-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* Habit list */
+    .habit-list { display: flex; flex-direction: column; gap: 2px; }
+
+    .habit-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 10px;
+      border-radius: var(--r);
+      cursor: pointer;
+      transition: background 0.1s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .habit-item:hover { background: rgba(55, 53, 47, 0.05); }
+    .habit-item.checked .habit-label { color: var(--text-3); text-decoration: line-through; }
+    .habit-item.disabled { cursor: default; opacity: 0.45; pointer-events: none; }
+
+    .habit-check {
+      width: 20px;
+      height: 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+      background: var(--bg);
+    }
+
+    .habit-item.checked .habit-check {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .check-icon {
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.15s;
+    }
+
+    .habit-item.checked .check-icon {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .habit-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+    .habit-label { flex: 1; font-size: 14px; transition: all 0.15s; }
+
+    /* ── SECTION TITLE ───────────────────────────── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-3);
+      margin-bottom: 14px;
+    }
+
+    /* ── GRID ────────────────────────────────────── */
+    .grid-wrap { margin-bottom: 32px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      gap: 4px;
+    }
+
+    @media (max-width: 500px) { .grid { grid-template-columns: repeat(10, 1fr); } }
+
+    .cell {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+      background: var(--surface);
+    }
+
+    .cell:hover:not(.future) {
+      transform: scale(1.12);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 1;
+    }
+
+    .cell.future { cursor: default; }
+    .cell.future:hover { transform: none; box-shadow: none; }
+    .cell.today { background: var(--yellow-light); border-color: var(--yellow); }
+    .cell.complete { background: var(--green-light); border-color: var(--green); }
+    .cell.partial { background: var(--yellow-light); border-color: var(--yellow); }
+    .cell.failed { background: var(--red-light); border-color: var(--red); opacity: 0.65; }
+
+    .cell-n {
+      position: absolute;
+      bottom: 2px;
+      right: 3px;
+      font-size: 8px;
+      font-weight: 600;
+      color: var(--text-3);
+    }
+
+    .cell.complete .cell-n { color: var(--green); }
+    .cell.failed .cell-n { color: var(--red); }
+    .cell.today .cell-n { color: var(--yellow); }
+
+    .grid-legend { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2); }
+
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; border: 1px solid; }
+
+    /* ── STATS ───────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 480px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-3);
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .stat-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+    /* ── HABIT STATS ─────────────────────────────── */
+    .habit-stats { margin-bottom: 32px; }
+
+    .hstat-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hstat-row:last-child { border-bottom: none; }
+    .hstat-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+    .hstat-label { flex: 1; font-size: 13px; }
+
+    .hstat-bar-wrap { width: 72px; }
+
+    .hstat-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+
+    .hstat-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+
+    .hstat-pct { font-size: 12px; font-weight: 600; color: var(--text-2); min-width: 36px; text-align: right; }
+
+    /* ── COMPARE ─────────────────────────────────── */
+    .compare-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 480px) { .compare-cols { grid-template-columns: 1fr; } }
+
+    .compare-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .compare-name {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .name-tag {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tag-0 { background: var(--green-light); color: var(--green); }
+    .tag-1 { background: #e8f3fc; color: var(--blue); }
+
+    .compare-big { text-align: center; padding: 12px 0 16px; }
+
+    .compare-big-num {
+      font-size: 44px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    .compare-big-label { font-size: 12px; color: var(--text-2); margin-top: 6px; }
+
+    .compare-mini-stats {
+      display: flex;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+
+    .compare-mini { flex: 1; text-align: center; }
+    .compare-mini + .compare-mini { border-left: 1px solid var(--border); }
+
+    .compare-mini-num { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+
+    .compare-mini-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-3);
+      margin-top: 2px;
+    }
+
+    /* Compare breakdown */
+    .compare-hstat-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .compare-hstat-row:last-child { border-bottom: none; }
+    .compare-bars { display: flex; flex-direction: column; gap: 4px; width: 80px; flex-shrink: 0; }
+    .compare-bar-line { display: flex; align-items: center; gap: 6px; }
+
+    .compare-bar-bg { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+
+    .bar-green { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.5s ease; }
+    .bar-blue  { height: 100%; background: var(--blue);  border-radius: 2px; transition: width 0.5s ease; }
+
+    .compare-pct { font-size: 11px; font-weight: 600; min-width: 28px; text-align: right; }
+
+    .cmp-legend { display: flex; gap: 16px; margin-top: 12px; margin-bottom: 8px; }
+
+    /* ── DAY DETAIL MODAL ────────────────────────── */
+    .day-habit-rows { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+
+    .day-habit-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+    .day-habit-icon { font-size: 15px; width: 20px; text-align: center; }
+    .day-habit-name { flex: 1; }
+
+    .status-pill { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 4px; }
+    .status-done { background: var(--green-light); color: var(--green); }
+    .status-miss { background: var(--red-light); color: var(--red); }
+
+    /* ── TOAST ───────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--text);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 300;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── REFRESH INDICATOR ───────────────────────── */
+    .refresh-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .refresh-dot.active { opacity: 1; animation: pulse 1s ease-out; }
+    @keyframes pulse {
+      0%   { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(2); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── LOADING ───────────────────────────────────── -->
+<div id="loading-screen">
+  <span class="loading-logo">75D Hard</span>
+  <div class="spinner"></div>
+  <span class="loading-label">Carregando...</span>
+</div>
+
+<!-- ── SETUP MODAL ──────────────────────────────── -->
+<div id="setup-overlay" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-title">75D Hard</div>
+    <p class="modal-sub">Configure o desafio — só precisa fazer isso uma vez.</p>
+
+    <div class="form-group">
+      <label class="form-label">Participante 1</label>
+      <input class="form-input" type="text" id="setup-name0" placeholder="Ex: Gustavo" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Participante 2</label>
+      <input class="form-input" type="text" id="setup-name1" placeholder="Ex: João" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Data de início</label>
+      <input class="form-input" type="date" id="setup-date">
+    </div>
+
+    <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="doSetup()">Começar desafio →</button>
+  </div>
+</div>
+
+<!-- ── PROFILE PICKER ────────────────────────────── -->
+<div id="profile-overlay" class="overlay hidden">
+  <div class="modal">
+    <div class="modal-title">Quem é você?</div>
+    <p class="modal-sub">Escolha seu perfil para registrar o dia de hoje.</p>
+    <div id="profile-picker"></div>
+  </div>
+</div>
+
+<!-- ── DAY DETAIL MODAL ─────────────────────────── -->
+<div id="day-overlay" class="overlay hidden">
+  <div class="modal">
+    <div id="day-modal-body"></div>
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeDayModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── APP ──────────────────────────────────────── -->
+<div id="app" class="hidden">
+  <header>
+    <div class="header-left">
+      <span class="logo">75D Hard</span>
+      <span class="day-badge" id="day-badge">Dia 1 de 75</span>
+    </div>
+    <div class="header-right">
+      <div class="refresh-dot" id="refresh-dot"></div>
+      <div class="who-badge" id="who-badge" onclick="switchProfile()">
+        <span class="who-dot" id="who-dot"></span>
+        <span id="who-name">—</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-btn-me" onclick="setTab('me')">Meu progresso</button>
+    <button class="tab" id="tab-btn-compare" onclick="setTab('compare')">Comparar</button>
+  </div>
+
+  <!-- ── MY PROGRESS ──────────────────────────── -->
+  <div id="tab-me">
+
+    <div class="today-card">
+      <div class="today-header">
+        <div>
+          <div class="today-label">Hoje</div>
+          <div class="today-date" id="today-date-label">—</div>
+        </div>
+        <div class="progress-ring">
+          <svg viewBox="0 0 52 52" width="52" height="52">
+            <circle class="ring-bg" cx="26" cy="26" r="22"/>
+            <circle class="ring-fill" id="ring-fill" cx="26" cy="26" r="22"/>
+          </svg>
+          <div class="ring-text" id="ring-text">0/8</div>
+        </div>
+      </div>
+      <div class="habit-list" id="habit-list"></div>
+    </div>
+
+    <div class="grid-wrap">
+      <div class="section-title">75 dias</div>
+      <div class="grid" id="grid"></div>
+      <div class="grid-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--green-light);border-color:var(--green)"></div>Completo
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--yellow-light);border-color:var(--yellow)"></div>Parcial
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--red-light);border-color:var(--red)"></div>Faltou
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--surface);border-color:var(--border)"></div>A fazer
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Estatísticas</div>
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <div class="section-title" style="margin-top:4px">Por hábito</div>
+    <div class="habit-stats" id="habit-stats"></div>
+
+  </div>
+
+  <!-- ── COMPARE ────────────────────────────────── -->
+  <div id="tab-compare" class="hidden">
+    <div class="compare-cols" id="compare-cols"></div>
+    <div id="compare-breakdown"></div>
+  </div>
+
+</div>
+
+<script>
+/* ─── CONFIG ──────────────────────────────────────────────── */
+
+const API = 'https://n8n.ghxmkt.com/webhook/75d-hard';
+const TOTAL = 75;
+const CIRC  = 2 * Math.PI * 22; // ≈ 138.23
+
+const HABITS = [
+  { id: 'instagram', icon: '📸', label: 'Post no Instagram' },
+  { id: 'workout1',  icon: '💪', label: 'Treino 1 (45 min)' },
+  { id: 'workout2',  icon: '🌳', label: 'Treino 2 externo (45 min)' },
+  { id: 'diet',      icon: '🥗', label: 'Dieta do dia' },
+  { id: 'nosweet',   icon: '🚫', label: 'Sem doce e sem álcool' },
+  { id: 'reading',   icon: '📚', label: '10 páginas lidas' },
+  { id: 'water',     icon: '💧', label: '3,8 L de água' },
+  { id: 'mirror',    icon: '🪞', label: 'Foto no espelho' },
+];
+
+/* ─── STATE ───────────────────────────────────────────────── */
+
+// Remote data (shared between both users via n8n)
+let DATA = { startDate: '', names: ['', ''], days: [{}, {}] };
+
+// Local: which profile is active on this device
+let ME = parseInt(localStorage.getItem('75d_profile') || '0', 10);
+
+/* ─── API ─────────────────────────────────────────────────── */
+
+async function apiGet() {
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'get' }),
+  });
+  return res.json();
+}
+
+async function apiSave(data) {
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'save', data }),
+  });
+  return res.json();
+}
+
+/* ─── DATE HELPERS ────────────────────────────────────────── */
+
+function localToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function addDays(ds, n) {
+  const d = new Date(ds + 'T12:00:00');
+  d.setDate(d.getDate() + n);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function dayIndex(ds) {
+  const a = new Date(DATA.startDate + 'T12:00:00');
+  const b = new Date(ds + 'T12:00:00');
+  return Math.round((b - a) / 86400000);
+}
+
+function fmtDate(ds) {
+  return new Date(ds + 'T12:00:00').toLocaleDateString('pt-BR', {
+    weekday: 'long', day: 'numeric', month: 'long'
+  });
+}
+
+function fmtShort(ds) {
+  return new Date(ds + 'T12:00:00').toLocaleDateString('pt-BR', {
+    day: 'numeric', month: 'short'
+  });
+}
+
+/* ─── HABIT HELPERS ───────────────────────────────────────── */
+
+function getDay(ds, profileIdx) { return (DATA.days[profileIdx] || {})[ds] || {}; }
+function countDone(h)  { return HABITS.filter(x => h[x.id]).length; }
+function isComplete(h) { return countDone(h) === HABITS.length; }
+
+/* ─── SETUP ───────────────────────────────────────────────── */
+
+async function doSetup() {
+  const n0   = document.getElementById('setup-name0').value.trim();
+  const n1   = document.getElementById('setup-name1').value.trim();
+  const date = document.getElementById('setup-date').value;
+
+  if (!n0 || !n1 || !date) { toast('Preencha todos os campos'); return; }
+
+  DATA = { startDate: date, names: [n0, n1], days: [{}, {}] };
+
+  document.getElementById('setup-overlay').classList.add('hidden');
+  showLoading('Salvando...');
+
+  await apiSave(DATA);
+  hideLoading();
+  showProfilePicker();
+}
+
+/* ─── PROFILE PICKER ──────────────────────────────────────── */
+
+function showProfilePicker() {
+  const picker = document.getElementById('profile-picker');
+  picker.innerHTML = DATA.names.map((name, i) => `
+    <button class="profile-btn" onclick="selectProfile(${i})">
+      <div class="profile-avatar avatar-${i}">${(name[0]||'?').toUpperCase()}</div>
+      <div>
+        <div class="profile-btn-name">${name}</div>
+        <div class="profile-btn-sub">Ver meu progresso</div>
+      </div>
+    </button>
+  `).join('');
+
+  document.getElementById('profile-overlay').classList.remove('hidden');
+}
+
+function selectProfile(idx) {
+  ME = idx;
+  localStorage.setItem('75d_profile', idx);
+  document.getElementById('profile-overlay').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  renderAll();
+}
+
+function switchProfile() {
+  document.getElementById('app').classList.add('hidden');
+  showProfilePicker();
+}
+
+/* ─── RENDER ──────────────────────────────────────────────── */
+
+function renderAll() {
+  renderHeader();
+  renderToday();
+  renderGrid();
+  renderStats();
+  renderCompare();
+}
+
+function renderHeader() {
+  const idx = dayIndex(localToday());
+  const n   = Math.max(1, Math.min(idx + 1, TOTAL));
+  document.getElementById('day-badge').textContent = `Dia ${n} de ${TOTAL}`;
+
+  const name = DATA.names[ME] || '—';
+  document.getElementById('who-name').textContent = name;
+  document.getElementById('who-dot').className = `who-dot dot-${ME}`;
+}
+
+function renderToday() {
+  const t = localToday();
+  const inChallenge = dayIndex(t) >= 0 && dayIndex(t) < TOTAL;
+
+  document.getElementById('today-date-label').textContent = fmtDate(t);
+
+  const h    = getDay(t, ME);
+  const done = countDone(h);
+
+  document.getElementById('ring-fill').style.strokeDashoffset = CIRC - (done / HABITS.length) * CIRC;
+  document.getElementById('ring-text').textContent = `${done}/${HABITS.length}`;
+
+  const list = document.getElementById('habit-list');
+  list.innerHTML = '';
+
+  HABITS.forEach(habit => {
+    const checked = !!h[habit.id];
+    const div = document.createElement('div');
+    div.className = 'habit-item' + (checked ? ' checked' : '') + (!inChallenge ? ' disabled' : '');
+    div.innerHTML = `
+      <div class="habit-check">
+        <svg class="check-icon" width="12" height="12" viewBox="0 0 12 12">
+          <polyline points="2,6 5,9 10,3" fill="none" stroke="white"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="habit-icon">${habit.icon}</span>
+      <span class="habit-label">${habit.label}</span>
+    `;
+    if (inChallenge) div.onclick = () => toggleHabit(t, habit.id);
+    list.appendChild(div);
+  });
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  const t = localToday();
+  grid.innerHTML = '';
+
+  for (let i = 0; i < TOTAL; i++) {
+    const ds     = addDays(DATA.startDate, i);
+    const isToday = ds === t;
+    const isPast  = ds < t;
+    const h       = getDay(ds, ME);
+    const hasAny  = Object.keys(h).length > 0;
+
+    let cls = 'cell ';
+    if (isToday)     cls += 'today';
+    else if (isPast) cls += (!hasAny ? 'failed' : isComplete(h) ? 'complete' : 'partial');
+    else             cls += 'future';
+
+    const cell = document.createElement('div');
+    cell.className = cls;
+    cell.title = `Dia ${i+1} — ${fmtShort(ds)}`;
+    cell.innerHTML = `<span class="cell-n">${i+1}</span>`;
+    if (!cls.includes('future')) cell.onclick = () => openDayModal(ds);
+    grid.appendChild(cell);
+  }
+}
+
+function calcStats(pidx) {
+  const t = localToday();
+  let complete = 0, tracked = 0, streak = 0;
+
+  let cur = t;
+  if (!isComplete(getDay(cur, pidx))) cur = addDays(cur, -1);
+  while (dayIndex(cur) >= 0) {
+    if (isComplete(getDay(cur, pidx))) { streak++; cur = addDays(cur, -1); }
+    else break;
+  }
+
+  for (let i = 0; i < TOTAL; i++) {
+    const ds = addDays(DATA.startDate, i);
+    if (ds > t) break;
+    tracked++;
+    if (isComplete(getDay(ds, pidx))) complete++;
+  }
+
+  return { complete, tracked, streak, pct: tracked > 0 ? Math.round((complete/tracked)*100) : 0 };
+}
+
+function renderStats() {
+  const t  = localToday();
+  const st = calcStats(ME);
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Sequência</div>
+      <div class="stat-value">${st.streak}</div>
+      <div class="stat-sub">dias seguidos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Concluídos</div>
+      <div class="stat-value">${st.complete}</div>
+      <div class="stat-sub">de ${st.tracked} dias</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Taxa</div>
+      <div class="stat-value">${st.pct}%</div>
+      <div class="stat-sub">de aproveitamento</div>
+    </div>
+  `;
+
+  const habitStats = document.getElementById('habit-stats');
+  habitStats.innerHTML = '';
+
+  HABITS.forEach(h => {
+    let count = 0, tracked = 0;
+    for (let i = 0; i < TOTAL; i++) {
+      const ds = addDays(DATA.startDate, i);
+      if (ds > t) break;
+      tracked++;
+      if (getDay(ds, ME)[h.id]) count++;
+    }
+    const pct = tracked > 0 ? Math.round((count/tracked)*100) : 0;
+
+    const row = document.createElement('div');
+    row.className = 'hstat-row';
+    row.innerHTML = `
+      <span class="hstat-icon">${h.icon}</span>
+      <span class="hstat-label">${h.label}</span>
+      <div class="hstat-bar-wrap">
+        <div class="hstat-bar"><div class="hstat-fill" style="width:${pct}%"></div></div>
+      </div>
+      <span class="hstat-pct">${pct}%</span>
+    `;
+    habitStats.appendChild(row);
+  });
+}
+
+function renderCompare() {
+  const t = localToday();
+
+  function card(name, pidx) {
+    const st = calcStats(pidx);
+    return `
+      <div class="compare-card">
+        <div class="compare-name">
+          <div class="name-tag tag-${pidx}">${(name[0]||'?').toUpperCase()}</div>
+          ${name}
+        </div>
+        <div class="compare-big">
+          <div class="compare-big-num">${st.complete}</div>
+          <div class="compare-big-label">dias completos</div>
+        </div>
+        <div class="compare-mini-stats">
+          <div class="compare-mini">
+            <div class="compare-mini-num">${st.streak}</div>
+            <div class="compare-mini-label">Sequência</div>
+          </div>
+          <div class="compare-mini">
+            <div class="compare-mini-num">${st.pct}%</div>
+            <div class="compare-mini-label">Taxa</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById('compare-cols').innerHTML =
+    card(DATA.names[0], 0) + card(DATA.names[1], 1);
+
+  // Breakdown
+  let html = `
+    <div class="section-title" style="margin-top:4px">Hábitos — comparação</div>
+    <div class="cmp-legend">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--green-light);border-color:var(--green)"></div>
+        ${DATA.names[0]}
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#e8f3fc;border-color:var(--blue)"></div>
+        ${DATA.names[1]}
+      </div>
+    </div>
+  `;
+
+  HABITS.forEach(h => {
+    let c0 = 0, c1 = 0, tracked = 0;
+    for (let i = 0; i < TOTAL; i++) {
+      const ds = addDays(DATA.startDate, i);
+      if (ds > t) break;
+      tracked++;
+      if (getDay(ds, 0)[h.id]) c0++;
+      if (getDay(ds, 1)[h.id]) c1++;
+    }
+    const p0 = tracked > 0 ? Math.round((c0/tracked)*100) : 0;
+    const p1 = tracked > 0 ? Math.round((c1/tracked)*100) : 0;
+
+    html += `
+      <div class="compare-hstat-row">
+        <span class="hstat-icon">${h.icon}</span>
+        <span class="hstat-label" style="font-size:13px">${h.label}</span>
+        <div class="compare-bars">
+          <div class="compare-bar-line">
+            <div class="compare-bar-bg"><div class="bar-green" style="width:${p0}%"></div></div>
+            <span class="compare-pct" style="color:var(--green)">${p0}%</span>
+          </div>
+          <div class="compare-bar-line">
+            <div class="compare-bar-bg"><div class="bar-blue" style="width:${p1}%"></div></div>
+            <span class="compare-pct" style="color:var(--blue)">${p1}%</span>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById('compare-breakdown').innerHTML = html;
+}
+
+/* ─── TOGGLE HABIT ────────────────────────────────────────── */
+
+async function toggleHabit(ds, habitId) {
+  if (!DATA.days[ME][ds]) DATA.days[ME][ds] = {};
+  DATA.days[ME][ds][habitId] = !DATA.days[ME][ds][habitId];
+
+  renderToday();
+  renderGrid();
+  renderStats();
+  renderCompare();
+
+  await apiSave(DATA);
+}
+
+/* ─── DAY MODAL ───────────────────────────────────────────── */
+
+function openDayModal(ds) {
+  const h    = getDay(ds, ME);
+  const done = countDone(h);
+  const comp = isComplete(h);
+
+  let statusLine = comp
+    ? '<span style="color:var(--green)">✓ Dia completo</span>'
+    : done === 0
+      ? '<span style="color:var(--red)">✗ Nenhum hábito</span>'
+      : `<span style="color:var(--yellow)">◑ ${done}/${HABITS.length} hábitos</span>`;
+
+  const rows = HABITS.map(habit => `
+    <div class="day-habit-row">
+      <span class="day-habit-icon">${habit.icon}</span>
+      <span class="day-habit-name">${habit.label}</span>
+      <span class="status-pill ${h[habit.id] ? 'status-done' : 'status-miss'}">${h[habit.id] ? 'Feito' : 'Não feito'}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('day-modal-body').innerHTML = `
+    <div style="font-size:15px;font-weight:600;margin-bottom:4px">${fmtDate(ds)}</div>
+    <div style="font-size:13px;color:var(--text-2);margin-bottom:2px">${statusLine}</div>
+    <div class="day-habit-rows">${rows}</div>
+  `;
+
+  document.getElementById('day-overlay').classList.remove('hidden');
+}
+
+function closeDayModal() {
+  document.getElementById('day-overlay').classList.add('hidden');
+}
+
+/* ─── TABS ────────────────────────────────────────────────── */
+
+function setTab(tab) {
+  document.getElementById('tab-btn-me').classList.toggle('active', tab === 'me');
+  document.getElementById('tab-btn-compare').classList.toggle('active', tab === 'compare');
+  document.getElementById('tab-me').classList.toggle('hidden', tab !== 'me');
+  document.getElementById('tab-compare').classList.toggle('hidden', tab !== 'compare');
+}
+
+/* ─── TOAST ───────────────────────────────────────────────── */
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+/* ─── LOADING ─────────────────────────────────────────────── */
+
+function showLoading(msg) {
+  document.getElementById('loading-screen').querySelector('.loading-label').textContent = msg || 'Carregando...';
+  document.getElementById('loading-screen').classList.remove('hidden');
+}
+
+function hideLoading() {
+  document.getElementById('loading-screen').classList.add('hidden');
+}
+
+/* ─── AUTO REFRESH ────────────────────────────────────────── */
+
+// Poll every 60s to pick up partner's changes
+setInterval(async () => {
+  try {
+    const fresh = await apiGet();
+    if (fresh.startDate) {
+      DATA = fresh;
+      renderAll();
+      const dot = document.getElementById('refresh-dot');
+      dot.classList.add('active');
+      setTimeout(() => dot.classList.remove('active'), 1200);
+    }
+  } catch(e) { /* silent */ }
+}, 60000);
+
+/* ─── INIT ────────────────────────────────────────────────── */
+
+(function init() {
+  // Set tomorrow as default in setup
+  const tomorrow = addDaysRaw(localToday(), 1);
+  document.getElementById('setup-date').value = tomorrow;
+
+  document.getElementById('day-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeDayModal();
+  });
+
+  // Load from API
+  apiGet().then(data => {
+    hideLoading();
+
+    if (!data.startDate) {
+      // Not configured yet — show setup
+      document.getElementById('setup-overlay').classList.remove('hidden');
+      return;
+    }
+
+    DATA = data;
+
+    // Check if this device already has a profile selected
+    const saved = localStorage.getItem('75d_profile');
+    if (saved !== null) {
+      ME = parseInt(saved, 10);
+      document.getElementById('app').classList.remove('hidden');
+      renderAll();
+    } else {
+      showProfilePicker();
+    }
+  }).catch(() => {
+    hideLoading();
+    toast('Erro ao conectar. Tente recarregar a página.');
+  });
+
+  function addDaysRaw(ds, n) {
+    const d = new Date(ds + 'T12:00:00');
+    d.setDate(d.getDate() + n);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+})();
+</script>
+</body>
+</html>
