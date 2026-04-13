@@ -665,6 +665,160 @@
 
     .toast.show { transform: translateX(-50%) translateY(0); }
 
+    /* ── TRAINING PLAN ───────────────────────────── */
+    .training-week-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .training-week-label {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .training-week-sub {
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .training-progress {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    .training-progress-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+
+    .workout-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    .workout-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: border-color 0.15s;
+    }
+
+    .workout-card.is-today {
+      border-color: var(--yellow);
+      background: var(--yellow-light);
+    }
+
+    .workout-card.is-past {
+      opacity: 0.55;
+    }
+
+    .workout-day-col {
+      min-width: 68px;
+      flex-shrink: 0;
+    }
+
+    .workout-day-name {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-3);
+    }
+
+    .workout-card.is-today .workout-day-name {
+      color: var(--yellow);
+    }
+
+    .workout-date {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      margin-top: 2px;
+    }
+
+    .workout-divider {
+      width: 1px;
+      align-self: stretch;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .workout-desc {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .workout-today-tag {
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--yellow);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .training-empty {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-2);
+    }
+
+    .training-empty .empty-icon { font-size: 32px; margin-bottom: 12px; }
+    .training-empty p { font-size: 13px; line-height: 1.6; }
+    .training-empty code {
+      display: inline-block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: 'SF Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+      margin-top: 8px;
+    }
+
+    .upcoming-weeks { margin-bottom: 32px; }
+
+    .upcoming-week-row {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .upcoming-week-row:last-child { border-bottom: none; }
+
+    .upcoming-week-num {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-3);
+      min-width: 60px;
+    }
+
+    .upcoming-week-desc { color: var(--text-2); }
+
     /* ── REFRESH INDICATOR ───────────────────────── */
     .refresh-dot {
       width: 6px;
@@ -754,6 +908,7 @@
   <div class="tabs">
     <button class="tab active" id="tab-btn-me" onclick="setTab('me')">Meu progresso</button>
     <button class="tab" id="tab-btn-compare" onclick="setTab('compare')">Comparar</button>
+    <button class="tab" id="tab-btn-treinos" onclick="setTab('treinos')">Treinos 🏃</button>
   </div>
 
   <!-- ── MY PROGRESS ──────────────────────────── -->
@@ -809,6 +964,11 @@
     <div id="compare-breakdown"></div>
   </div>
 
+  <!-- ── TRAINING PLAN ──────────────────────────── -->
+  <div id="tab-treinos" class="hidden">
+    <div id="training-content"></div>
+  </div>
+
 </div>
 
 <script>
@@ -817,6 +977,32 @@
 const API = 'https://n8n.ghxmkt.com/webhook/75d-hard';
 const TOTAL = 75;
 const CIRC  = 2 * Math.PI * 22; // ≈ 138.23
+
+/* ─── PLANO DE TREINOS — MEIA-MARATONA ────────────────────────
+   Adicione uma entrada por semana abaixo.
+   Cada entrada tem três campos: ter, qui, dom.
+   A semana correta é calculada automaticamente pela data de hoje.
+   ─────────────────────────────────────────────────────────── */
+
+const TRAINING_START = '2026-04-15'; // Primeira terça-feira do plano
+
+const TRAINING_PLAN = [
+  // ── Semana 1 ─────────────────────────────────────────────
+  {
+    ter: 'Corrida fácil 5 km — zona 2 (pace confortável)',
+    qui: 'Aquecimento 10min + 4×400m forte + volta calma',
+    dom: 'Long run 8 km — pace leve, sem pressão',
+  },
+
+  // ── Semana 2 ─────────────────────────────────────────────
+  // {
+  //   ter: '',
+  //   qui: '',
+  //   dom: '',
+  // },
+
+  // Continue adicionando semanas aqui...
+];
 
 const HABITS = [
   { id: 'instagram', icon: '📸', label: 'Post no Instagram' },
@@ -1221,13 +1407,144 @@ function closeDayModal() {
   document.getElementById('day-overlay').classList.add('hidden');
 }
 
+/* ─── TRAINING PLAN ───────────────────────────────────────── */
+
+function renderTraining() {
+  const t = localToday();
+  const start = new Date(TRAINING_START + 'T12:00:00');
+  const now   = new Date(t + 'T12:00:00');
+  const totalWeeks = TRAINING_PLAN.length;
+
+  // Which week index are we in? (0-based)
+  const msPerWeek = 7 * 86400000;
+  const weekIdx   = Math.floor((now - start) / msPerWeek);
+
+  const el = document.getElementById('training-content');
+
+  // Before plan starts
+  if (weekIdx < 0) {
+    const daysLeft = Math.ceil((start - now) / 86400000);
+    el.innerHTML = `
+      <div class="training-empty">
+        <div class="empty-icon">📅</div>
+        <p>O plano de treinos começa em <strong>${daysLeft} dias</strong>.<br>
+        Primeiro treino: terça-feira, ${fmtShort(TRAINING_START)}.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // After plan ends
+  if (weekIdx >= totalWeeks && totalWeeks > 0) {
+    el.innerHTML = `
+      <div class="training-empty">
+        <div class="empty-icon">🏅</div>
+        <p>Plano de treinos concluído!<br>Boa sorte na meia-maratona.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // No weeks added yet
+  if (totalWeeks === 0) {
+    el.innerHTML = `
+      <div class="training-empty">
+        <div class="empty-icon">📝</div>
+        <p>Nenhum treino cadastrado ainda.<br>
+        Abra o HTML e preencha o array <code>TRAINING_PLAN</code>.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const currentWeek = TRAINING_PLAN[Math.min(weekIdx, totalWeeks - 1)];
+  const displayWeek = weekIdx + 1;
+  const pct = Math.min(100, Math.round((weekIdx / totalWeeks) * 100));
+
+  // Dates of this week's workouts (Ter = start+0, Qui = start+2, Dom = start+5)
+  // TRAINING_START is a Tuesday (weekday offsets from that Tuesday)
+  const weekStart = new Date(TRAINING_START + 'T12:00:00');
+  weekStart.setDate(weekStart.getDate() + weekIdx * 7);
+
+  function weekDate(offsetFromTue) {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + offsetFromTue);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  const workouts = [
+    { key: 'ter', label: 'Terça', offset: 0 },
+    { key: 'qui', label: 'Quinta', offset: 2 },
+    { key: 'dom', label: 'Domingo', offset: 5 },
+  ].map(w => ({ ...w, date: weekDate(w.offset) }));
+
+  // Build workout cards
+  const cards = workouts.map(w => {
+    const isToday = w.date === t;
+    const isPast  = w.date < t;
+    let cls = 'workout-card';
+    if (isToday) cls += ' is-today';
+    else if (isPast) cls += ' is-past';
+
+    const desc = currentWeek[w.key] || '<span style="color:var(--text-3)">Treino não cadastrado ainda</span>';
+
+    return `
+      <div class="${cls}">
+        <div class="workout-day-col">
+          <div class="workout-day-name">${w.label}</div>
+          <div class="workout-date">${fmtShort(w.date)}</div>
+        </div>
+        <div class="workout-divider"></div>
+        <div class="workout-desc">${desc}</div>
+        ${isToday ? '<div class="workout-today-tag">Hoje</div>' : ''}
+      </div>
+    `;
+  }).join('');
+
+  // Upcoming weeks preview (next 2, if they exist)
+  let upcomingHTML = '';
+  const upcomingRows = [];
+  for (let i = weekIdx + 1; i < Math.min(weekIdx + 3, totalWeeks); i++) {
+    const w = TRAINING_PLAN[i];
+    upcomingRows.push(`
+      <div class="upcoming-week-row">
+        <span class="upcoming-week-num">Sem. ${i + 1}</span>
+        <span class="upcoming-week-desc">${w.ter} · ${w.dom}</span>
+      </div>
+    `);
+  }
+
+  if (upcomingRows.length > 0) {
+    upcomingHTML = `
+      <div class="section-title">Próximas semanas</div>
+      <div class="upcoming-weeks">${upcomingRows.join('')}</div>
+    `;
+  }
+
+  el.innerHTML = `
+    <div class="training-week-header">
+      <div class="training-week-label">Semana ${displayWeek}</div>
+      <div class="training-week-sub">${displayWeek} de ${totalWeeks} semanas</div>
+    </div>
+    <div class="training-progress">
+      <div class="training-progress-fill" style="width:${pct}%"></div>
+    </div>
+    <div class="section-title">Esta semana</div>
+    <div class="workout-cards">${cards}</div>
+    ${upcomingHTML}
+  `;
+}
+
 /* ─── TABS ────────────────────────────────────────────────── */
 
 function setTab(tab) {
   document.getElementById('tab-btn-me').classList.toggle('active', tab === 'me');
   document.getElementById('tab-btn-compare').classList.toggle('active', tab === 'compare');
+  document.getElementById('tab-btn-treinos').classList.toggle('active', tab === 'treinos');
   document.getElementById('tab-me').classList.toggle('hidden', tab !== 'me');
   document.getElementById('tab-compare').classList.toggle('hidden', tab !== 'compare');
+  document.getElementById('tab-treinos').classList.toggle('hidden', tab !== 'treinos');
+  if (tab === 'treinos') renderTraining();
 }
 
 /* ─── TOAST ───────────────────────────────────────────────── */
